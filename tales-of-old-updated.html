@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Seeraj Bellamkonda">
+<title>Tales of Old – Your Daily Memory Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,500;1,400&family=Dancing+Script:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ====================================
+   🎨 EASY CUSTOMIZATION ZONE
+   These CSS variables control the entire
+   look of your website!
+   ==================================== */
+:root {
+  --color-bg: #0f0804;
+  --color-surface: #1e1208;
+  --color-paper: #f5e8c8;
+  --color-gold: #c9973a;
+  --color-gold-light: #e8b84b;
+  --color-amber: #d4762a;
+  --color-cream: #f0e0b0;
+  --color-text-dark: #2c1810;
+  --color-text-muted: #8b7355;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Lora', Georgia, serif;
+  --font-script: 'Dancing Script', cursive;
+  --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-cream);
+  overflow-x: hidden;
+  cursor: none;
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-gold); border-radius: 4px; }
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* === CURSOR === */
+.cursor {
+  width: 18px; height: 18px;
+  background: var(--color-gold);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s, opacity 0.3s;
+  mix-blend-mode: difference;
+}
+.cursor-trail {
+  width: 38px; height: 38px;
+  border: 1.5px solid var(--color-gold);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  opacity: 0.4;
+  transition: left 0.12s ease, top 0.12s ease;
+}
+
+/* === NAV === */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 1.5rem 3rem;
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(15,8,4,0.95), transparent);
+  transition: var(--transition);
+}
+nav.scrolled {
+  background: rgba(15,8,4,0.97);
+  backdrop-filter: blur(20px);
+  padding: 0.9rem 3rem;
+  border-bottom: 1px solid rgba(201,151,58,0.2);
+}
+.nav-logo {
+  font-family: var(--font-display); font-size: 1.4rem;
+  color: var(--color-gold); text-decoration: none; letter-spacing: 0.05em;
+}
+.nav-logo span { font-style: italic; color: var(--color-cream); }
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  color: var(--color-cream); text-decoration: none; font-size: 0.8rem;
+  letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.65;
+  transition: var(--transition);
+}
+.nav-links a:hover { opacity: 1; color: var(--color-gold); }
+.nav-streak {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: rgba(201,151,58,0.12); border: 1px solid rgba(201,151,58,0.25);
+  padding: 0.4rem 1rem; border-radius: 2rem;
+  font-size: 0.82rem; color: var(--color-gold);
+}
+
+/* === HERO === */
+#hero {
+  position: relative; height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; overflow: hidden;
+}
+#particle-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-content { position: relative; z-index: 2; text-align: center; padding: 2rem; }
+
+.hero-pre {
+  font-family: var(--font-script); font-size: 1.4rem; color: var(--color-gold);
+  opacity: 0; animation: fadeUp 1s ease 0.5s forwards;
+  margin-bottom: 1rem; display: block;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 12vw, 9.5rem);
+  font-weight: 900; line-height: 0.88;
+  color: var(--color-cream);
+  text-shadow: 0 0 100px rgba(201,151,58,0.25);
+  opacity: 0; animation: fadeUp 1.2s ease 0.7s forwards;
+  letter-spacing: -0.02em;
+}
+.hero-title em { color: var(--color-gold); font-style: italic; display: block; }
+.hero-desc {
+  font-size: 1.1rem; color: var(--color-text-muted);
+  max-width: 480px; margin: 1.6rem auto;
+  line-height: 1.8; opacity: 0;
+  animation: fadeUp 1s ease 1.0s forwards;
+}
+.hero-cta {
+  display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+  opacity: 0; animation: fadeUp 1s ease 1.3s forwards;
+}
+.hero-corners {
+  position: absolute; top: 5.5rem; left: 2rem; right: 2rem; bottom: 2rem;
+  pointer-events: none; z-index: 1;
+}
+.hero-corners::before, .hero-corners::after {
+  content: ''; position: absolute;
+  width: 55px; height: 55px; border-color: rgba(201,151,58,0.25); border-style: solid;
+}
+.hero-corners::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.hero-corners::after { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+.scroll-indicator {
+  position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+  opacity: 0; animation: fadeIn 1s ease 2.2s forwards;
+  color: var(--color-text-muted); font-size: 0.65rem;
+  letter-spacing: 0.2em; text-transform: uppercase; z-index: 2;
+}
+.scroll-line {
+  width: 1px; height: 45px;
+  background: linear-gradient(to bottom, var(--color-gold), transparent);
+  animation: scrollPulse 2s ease infinite;
+}
+
+/* === BUTTONS === */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-amber), var(--color-gold));
+  color: var(--color-bg); font-family: var(--font-body); font-weight: 500;
+  padding: 0.9rem 2.5rem; border: none; cursor: pointer;
+  font-size: 0.9rem; letter-spacing: 0.07em; text-transform: uppercase;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  position: relative; overflow: hidden; transition: var(--transition);
+}
+.btn-primary::before {
+  content: ''; position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: rotate(45deg) translateX(-100%); transition: 0.6s;
+}
+.btn-primary:hover::before { transform: rotate(45deg) translateX(100%); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 35px rgba(201,151,58,0.35); }
+
+.btn-secondary {
+  background: transparent; color: var(--color-cream); font-family: var(--font-body);
+  padding: 0.9rem 2.5rem; border: 1px solid rgba(201,151,58,0.35); cursor: pointer;
+  font-size: 0.9rem; letter-spacing: 0.07em; text-transform: uppercase;
+  transition: var(--transition);
+}
+.btn-secondary:hover { border-color: var(--color-gold); color: var(--color-gold); background: rgba(201,151,58,0.06); }
+
+/* === SECTION LABELS === */
+.section-label {
+  font-family: var(--font-script); color: var(--color-gold);
+  font-size: 1.25rem; text-align: center; margin-bottom: 0.4rem; display: block;
+}
+.section-title {
+  font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--color-cream); text-align: center; margin-bottom: 3rem;
+}
+.section-title span { color: var(--color-gold); font-style: italic; }
+
+/* === DAILY PROMPT === */
+#daily-prompt {
+  padding: 6rem 2rem; min-height: 80vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.category-filters {
+  display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; margin-bottom: 3rem;
+}
+.filter-btn {
+  background: transparent; border: 1px solid rgba(201,151,58,0.22);
+  color: var(--color-text-muted); padding: 0.35rem 1.1rem; cursor: pointer;
+  font-family: var(--font-body); font-size: 0.82rem; border-radius: 2rem;
+  transition: var(--transition); letter-spacing: 0.04em;
+}
+.filter-btn:hover, .filter-btn.active {
+  background: rgba(201,151,58,0.14); border-color: var(--color-gold); color: var(--color-gold);
+}
+.prompt-container { max-width: 780px; width: 100%; perspective: 1200px; }
+.prompt-card {
+  background: linear-gradient(135deg, #2a1a08, #1a0d05);
+  border: 1px solid rgba(201,151,58,0.28);
+  padding: 4rem; position: relative; overflow: hidden;
+  transition: transform 0.6s ease, box-shadow 0.4s ease;
+}
+.prompt-card:hover { box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 40px rgba(201,151,58,0.05); }
+.prompt-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(
+    transparent, transparent 27px,
+    rgba(201,151,58,0.055) 27px, rgba(201,151,58,0.055) 28px
+  );
+  pointer-events: none;
+}
+.prompt-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(201,151,58,0.04), transparent 60%);
+  pointer-events: none;
+}
+.prompt-quill {
+  font-size: 3.5rem; position: absolute; top: 2rem; right: 3rem;
+  opacity: 0.12; transform: rotate(-15deg); z-index: 0;
+}
+.prompt-date { font-family: var(--font-script); color: var(--color-gold); font-size: 1.05rem; margin-bottom: 0.5rem; opacity: 0.75; }
+.prompt-category-badge {
+  display: inline-block; background: rgba(201,151,58,0.12);
+  border: 1px solid rgba(201,151,58,0.28); color: var(--color-gold);
+  font-size: 0.68rem; letter-spacing: 0.17em; text-transform: uppercase;
+  padding: 0.22rem 1rem; margin-bottom: 2rem;
+}
+.prompt-text {
+  font-family: var(--font-display); font-size: clamp(1.3rem, 2.5vw, 1.9rem);
+  line-height: 1.45; color: var(--color-cream); font-style: italic;
+  margin-bottom: 3rem; position: relative; z-index: 1;
+}
+.prompt-text::before {
+  content: '"'; font-size: 8rem; color: rgba(201,151,58,0.08);
+  position: absolute; top: -2rem; left: -1rem;
+  font-family: var(--font-display); line-height: 1; pointer-events: none;
+}
+.prompt-actions { display: flex; gap: 1rem; flex-wrap: wrap; position: relative; z-index: 1; }
+.prompt-nav {
+  display: flex; gap: 1rem; justify-content: center;
+  margin-top: 1.8rem; align-items: center;
+}
+.prompt-nav button {
+  background: transparent; border: 1px solid rgba(201,151,58,0.28);
+  color: var(--color-gold); padding: 0.45rem 1.4rem; cursor: pointer;
+  font-family: var(--font-body); font-size: 0.82rem; transition: var(--transition);
+}
+.prompt-nav button:hover { background: rgba(201,151,58,0.1); }
+.prompt-counter { color: var(--color-text-muted); font-size: 0.82rem; }
+
+/* === JOURNAL WRITER === */
+#journal-writer {
+  padding: 6rem 2rem;
+  background: linear-gradient(to bottom, var(--color-bg), #080401, var(--color-bg));
+}
+.journal-wrapper { max-width: 880px; margin: 0 auto; }
+.journal-book {
+  background: var(--color-paper); color: var(--color-text-dark);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.25), 0 25px 70px rgba(0,0,0,0.55), -6px 0 22px rgba(0,0,0,0.25), inset 25px 0 50px rgba(0,0,0,0.04);
+  display: grid; grid-template-columns: 42px 1fr;
+}
+.journal-spine {
+  background: linear-gradient(to right, #7a5030, #9a6848, #7a5030);
+  border-right: 2px solid rgba(0,0,0,0.18);
+  display: flex; align-items: center; justify-content: center;
+  writing-mode: vertical-rl; font-family: var(--font-display);
+  font-size: 0.6rem; color: rgba(255,255,255,0.35);
+  letter-spacing: 0.25em; text-transform: uppercase;
+}
+.journal-pages { padding: 3rem; }
+.journal-header { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.journal-title-input {
+  flex: 1; min-width: 200px; background: transparent;
+  border: none; border-bottom: 2px solid rgba(0,0,0,0.18);
+  font-family: var(--font-display); font-size: 1.55rem;
+  color: var(--color-text-dark); padding: 0.4rem 0; outline: none;
+  transition: border-color 0.3s;
+}
+.journal-title-input:focus { border-bottom-color: var(--color-amber); }
+.journal-title-input::placeholder { color: rgba(0,0,0,0.22); font-style: italic; }
+.journal-cat-select {
+  background: transparent; border: 1px solid rgba(0,0,0,0.18);
+  color: var(--color-text-dark); padding: 0.4rem 0.9rem;
+  font-family: var(--font-body); font-size: 0.85rem; cursor: pointer; outline: none;
+}
+.journal-date-label {
+  font-family: var(--font-script); font-size: 1.05rem; color: var(--color-text-muted);
+  margin-bottom: 1.5rem; display: block;
+  border-bottom: 1px solid rgba(0,0,0,0.09); padding-bottom: 1rem;
+}
+.journal-textarea-wrapper {
+  background-image: repeating-linear-gradient(
+    transparent, transparent 31px,
+    rgba(139,94,60,0.13) 31px, rgba(139,94,60,0.13) 32px
+  );
+  padding: 6px 0;
+}
+.journal-textarea {
+  width: 100%; min-height: 380px; background: transparent;
+  border: none; outline: none; font-family: var(--font-body);
+  font-size: 1.05rem; line-height: 2; color: var(--color-text-dark); resize: vertical;
+}
+.journal-textarea::placeholder { color: rgba(0,0,0,0.22); font-style: italic; }
+.journal-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 1.8rem; padding-top: 1rem;
+  border-top: 1px solid rgba(0,0,0,0.09); flex-wrap: wrap; gap: 1rem;
+}
+.word-count { font-size: 0.85rem; color: var(--color-text-muted); font-style: italic; }
+.journal-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.btn-save {
+  background: linear-gradient(135deg, #7a5030, #9a6848);
+  color: white; border: none; padding: 0.7rem 2rem;
+  font-family: var(--font-body); font-size: 0.85rem; cursor: pointer;
+  letter-spacing: 0.06em; text-transform: uppercase; transition: var(--transition);
+}
+.btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(100,60,20,0.4); }
+.btn-clear-sm {
+  background: transparent; color: var(--color-text-muted);
+  border: 1px solid rgba(0,0,0,0.18); padding: 0.7rem 1.4rem;
+  font-family: var(--font-body); font-size: 0.85rem; cursor: pointer; transition: var(--transition);
+}
+.btn-clear-sm:hover { border-color: rgba(0,0,0,0.35); color: var(--color-text-dark); }
+
+/* === SAVED STORIES === */
+#saved-stories { padding: 6rem 2rem; max-width: 1200px; margin: 0 auto; }
+.stories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem; }
+.story-card {
+  background: linear-gradient(135deg, #1e1208, #160d06);
+  border: 1px solid rgba(201,151,58,0.18); padding: 2rem; cursor: pointer;
+  transition: var(--transition); position: relative; overflow: hidden;
+}
+.story-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(to right, var(--color-amber), var(--color-gold));
+  transform: scaleX(0); transition: transform 0.4s ease; transform-origin: left;
+}
+.story-card:hover::before { transform: scaleX(1); }
+.story-card:hover { border-color: rgba(201,151,58,0.38); transform: translateY(-4px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+.story-card-cat { font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-gold); margin-bottom: 0.5rem; }
+.story-card-title { font-family: var(--font-display); font-size: 1.3rem; color: var(--color-cream); margin-bottom: 0.7rem; font-style: italic; }
+.story-card-preview { font-size: 0.85rem; color: var(--color-text-muted); line-height: 1.65; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.story-card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--color-text-muted); }
+.story-card-acts { display: flex; gap: 0.4rem; }
+.btn-icon {
+  background: transparent; border: 1px solid rgba(201,151,58,0.18);
+  color: var(--color-text-muted); width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 0.75rem; transition: var(--transition);
+}
+.btn-icon:hover { border-color: var(--color-gold); color: var(--color-gold); }
+.empty-stories { grid-column: 1/-1; text-align: center; padding: 4rem 2rem; color: var(--color-text-muted); }
+.empty-stories p { font-family: var(--font-script); font-size: 1.5rem; margin-bottom: 0.75rem; }
+
+/* === STORY MODAL === */
+.story-modal {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center; padding: 2rem;
+  opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+}
+.story-modal.open { opacity: 1; pointer-events: all; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(12px); cursor: pointer; }
+.modal-content {
+  position: relative; background: var(--color-paper); color: var(--color-text-dark);
+  max-width: 720px; width: 100%; max-height: 82vh; overflow-y: auto;
+  padding: 4rem; transform: translateY(24px);
+  transition: transform 0.4s ease; box-shadow: 0 40px 90px rgba(0,0,0,0.55);
+}
+.story-modal.open .modal-content { transform: translateY(0); }
+.modal-close { position: sticky; top: 0; float: right; background: transparent; border: none; font-size: 1.3rem; cursor: pointer; color: var(--color-text-muted); line-height: 1; margin-bottom: 0.75rem; }
+.modal-title { font-family: var(--font-display); font-size: 2rem; font-style: italic; margin-bottom: 0.4rem; }
+.modal-meta { font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(0,0,0,0.1); }
+.modal-body { font-size: 1.05rem; line-height: 1.95; white-space: pre-wrap; }
+.modal-actions { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); display: flex; gap: 1rem; flex-wrap: wrap; }
+
+/* === MEMORY LANE === */
+#memory-lane { padding: 6rem 2rem; overflow: hidden; }
+.decade-nav { display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 3rem; }
+.decade-btn {
+  background: transparent; border: 1px solid rgba(201,151,58,0.22);
+  color: var(--color-text-muted); padding: 0.7rem 1.6rem; cursor: pointer;
+  font-family: var(--font-display); font-size: 1rem; transition: var(--transition);
+  position: relative; overflow: hidden;
+}
+.decade-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(201,151,58,0.14), transparent); opacity: 0; transition: opacity 0.3s;
+}
+.decade-btn:hover::after, .decade-btn.active::after { opacity: 1; }
+.decade-btn:hover, .decade-btn.active { border-color: var(--color-gold); color: var(--color-gold); }
+#decade-display { transition: opacity 0.4s ease; }
+.decade-content { animation: fadeIn 0.5s ease; }
+.decade-header { text-align: center; margin-bottom: 3rem; position: relative; padding: 1rem 0 3rem; }
+.decade-bg-year {
+  font-family: var(--font-display); font-size: clamp(4rem, 10vw, 8rem);
+  color: rgba(201,151,58,0.06); line-height: 1;
+  position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap;
+}
+.decade-sub-title { font-family: var(--font-script); font-size: 1.9rem; color: var(--color-gold); position: relative; }
+.decade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; max-width: 1000px; margin: 0 auto; }
+.decade-event {
+  display: flex; gap: 1.3rem;
+  background: rgba(201,151,58,0.035); border-left: 2px solid var(--color-gold);
+  padding: 1.3rem; transition: var(--transition);
+}
+.decade-event:hover { background: rgba(201,151,58,0.07); transform: translateX(4px); }
+.decade-event-year { font-family: var(--font-display); font-size: 0.82rem; color: var(--color-gold); min-width: 38px; font-weight: 700; padding-top: 0.1rem; }
+.decade-event-text { font-size: 0.88rem; color: var(--color-text-muted); line-height: 1.55; }
+.decade-prompt-box {
+  max-width: 1000px; margin: 3rem auto 0;
+  background: linear-gradient(135deg, rgba(201,151,58,0.07), rgba(201,151,58,0.02));
+  border: 1px solid rgba(201,151,58,0.18); padding: 2.5rem; text-align: center;
+}
+.decade-prompt-label { font-family: var(--font-script); color: var(--color-gold); font-size: 1.1rem; margin-bottom: 1rem; display: block; }
+.decade-prompt-text { font-family: var(--font-display); font-size: 1.3rem; font-style: italic; color: var(--color-cream); margin-bottom: 1.5rem; line-height: 1.6; }
+
+/* === BRAIN HEALTH === */
+#brain-health {
+  padding: 6rem 2rem;
+  background: linear-gradient(135deg, #080500, var(--color-bg), #060400);
+}
+.tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2rem; max-width: 1100px; margin: 3rem auto 0; }
+.tip-card {
+  background: linear-gradient(135deg, rgba(201,151,58,0.055), rgba(201,151,58,0.015));
+  border: 1px solid rgba(201,151,58,0.14); padding: 2.5rem 2rem;
+  text-align: center; transition: var(--transition); position: relative; overflow: hidden;
+}
+.tip-card::before {
+  content: ''; position: absolute; width: 90px; height: 90px;
+  background: radial-gradient(circle, rgba(201,151,58,0.1), transparent);
+  top: -45px; right: -45px; border-radius: 50%;
+}
+.tip-card:hover { transform: translateY(-6px); border-color: rgba(201,151,58,0.32); box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
+.tip-icon { font-size: 2.8rem; margin-bottom: 1.3rem; display: block; }
+.tip-stat { font-family: var(--font-display); font-size: 2.8rem; color: var(--color-gold); font-weight: 900; line-height: 1; margin-bottom: 0.4rem; }
+.tip-title { font-family: var(--font-display); font-size: 1.15rem; color: var(--color-cream); margin-bottom: 0.65rem; font-style: italic; }
+.tip-desc { font-size: 0.85rem; color: var(--color-text-muted); line-height: 1.65; }
+
+/* === PROGRESS === */
+#progress-section { padding: 6rem 2rem; text-align: center; }
+.stats-row { display: flex; justify-content: center; gap: 4rem; flex-wrap: wrap; margin: 3rem 0; }
+.stat-item { text-align: center; }
+.stat-number { font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4rem); color: var(--color-gold); font-weight: 900; line-height: 1; display: block; }
+.stat-label { font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.17em; margin-top: 0.5rem; display: block; }
+.streak-bar-wrap { max-width: 620px; margin: 0 auto; }
+.streak-days { display: flex; gap: 0.35rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
+.streak-day {
+  width: 30px; height: 30px; background: rgba(201,151,58,0.09);
+  border: 1px solid rgba(201,151,58,0.18); border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; color: var(--color-text-muted); transition: var(--transition);
+}
+.streak-day.completed { background: linear-gradient(135deg, var(--color-amber), var(--color-gold)); border-color: var(--color-gold); color: var(--color-bg); font-weight: 700; }
+.streak-day.today { border-color: var(--color-gold); box-shadow: 0 0 10px rgba(201,151,58,0.4); animation: pulse 2s infinite; }
+
+/* === CUSTOMIZATION PANEL === */
+.customize-toggle {
+  position: fixed; right: 2rem; bottom: 2rem; z-index: 200;
+  background: linear-gradient(135deg, var(--color-amber), var(--color-gold));
+  border: none; width: 58px; height: 58px; border-radius: 50%;
+  cursor: pointer; font-size: 1.4rem; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 5px 25px rgba(201,151,58,0.38); transition: var(--transition);
+}
+.customize-toggle:hover { transform: scale(1.12) rotate(25deg); }
+.customize-panel {
+  position: fixed; right: -410px; top: 0; bottom: 0; width: 390px; max-width: 100vw;
+  background: #0d0702; border-left: 1px solid rgba(201,151,58,0.18);
+  z-index: 300; overflow-y: auto; transition: right 0.45s cubic-bezier(0.25,0.46,0.45,0.94);
+  padding: 2rem;
+}
+.customize-panel.open { right: 0; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(201,151,58,0.18); }
+.panel-title { font-family: var(--font-display); font-size: 1.35rem; color: var(--color-cream); }
+.panel-close { background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.2rem; transition: var(--transition); }
+.panel-close:hover { color: var(--color-gold); }
+.panel-section { margin-bottom: 2rem; }
+.panel-section-title { font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 0.9rem; }
+.theme-swatches { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.7rem; }
+.theme-swatch {
+  aspect-ratio: 1.4/1; border: 2px solid transparent; cursor: pointer;
+  border-radius: 4px; transition: var(--transition); position: relative; overflow: hidden;
+}
+.theme-swatch:hover, .theme-swatch.active { border-color: white; transform: scale(1.05); }
+.theme-swatch-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; font-size: 9px; text-align: center; padding: 2px; font-family: var(--font-body); }
+.font-slider { width: 100%; accent-color: var(--color-gold); margin: 0.5rem 0; cursor: pointer; }
+.slider-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--color-text-muted); }
+.panel-input {
+  width: 100%; background: rgba(201,151,58,0.05);
+  border: 1px solid rgba(201,151,58,0.18); color: var(--color-cream);
+  padding: 0.7rem 1rem; font-family: var(--font-body); font-size: 0.85rem; outline: none; transition: border-color 0.3s;
+}
+.panel-input:focus { border-color: var(--color-gold); }
+.toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; }
+.toggle-label { font-size: 0.85rem; color: var(--color-cream); }
+.toggle {
+  width: 42px; height: 22px; background: rgba(201,151,58,0.18); border-radius: 11px;
+  cursor: pointer; position: relative; transition: background 0.3s; border: none;
+}
+.toggle.on { background: var(--color-gold); }
+.toggle::after {
+  content: ''; position: absolute; width: 16px; height: 16px;
+  background: white; border-radius: 50%; top: 3px; left: 3px; transition: left 0.3s;
+}
+.toggle.on::after { left: 23px; }
+.panel-btn-full { width: 100%; margin-bottom: 0.65rem; }
+
+/* === TOAST === */
+.toast-container { position: fixed; bottom: 6rem; left: 50%; transform: translateX(-50%); z-index: 500; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
+.toast {
+  background: var(--color-gold); color: var(--color-bg);
+  padding: 0.7rem 2rem; font-family: var(--font-body); font-size: 0.85rem;
+  letter-spacing: 0.04em; animation: toastIn 0.4s ease, toastOut 0.4s ease 2.6s forwards;
+  text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3); white-space: nowrap;
+}
+
+/* === FOOTER === */
+footer { background: #050301; border-top: 1px solid rgba(201,151,58,0.1); padding: 3rem 2rem; text-align: center; }
+.footer-logo { font-family: var(--font-display); font-size: 1.8rem; color: var(--color-gold); margin-bottom: 0.4rem; }
+.footer-tagline { font-family: var(--font-script); color: var(--color-text-muted); font-size: 1.15rem; margin-bottom: 1.8rem; }
+.footer-links { display: flex; gap: 2rem; justify-content: center; list-style: none; flex-wrap: wrap; }
+.footer-links a { color: var(--color-text-muted); text-decoration: none; font-size: 0.8rem; letter-spacing: 0.1em; transition: color 0.3s; }
+.footer-links a:hover { color: var(--color-gold); }
+.footer-credit { margin-top: 2rem; font-size: 0.7rem; color: rgba(139,115,85,0.45); }
+
+/* === ANIMATIONS === */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scrollPulse { 0%,100%{transform:scaleY(1);opacity:1} 50%{transform:scaleY(0.5);opacity:0.5} }
+@keyframes pulse { 0%,100%{box-shadow:0 0 10px rgba(201,151,58,0.4)} 50%{box-shadow:0 0 22px rgba(201,151,58,0.75)} }
+@keyframes toastIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes toastOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-10px)} }
+
+.reveal { opacity: 0; transform: translateY(38px); transition: opacity 0.85s ease, transform 0.85s ease; }
+.reveal.revealed { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.12s; }
+.reveal-delay-2 { transition-delay: 0.24s; }
+.reveal-delay-3 { transition-delay: 0.36s; }
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+  .decade-grid { grid-template-columns: 1fr; }
+  .journal-book { grid-template-columns: 20px 1fr; }
+  .prompt-card { padding: 2.5rem 2rem; }
+  .modal-content { padding: 2rem; }
+  .stats-row { gap: 2.5rem; }
+}
+
+/* === PRINT === */
+@media print {
+  nav,.customize-toggle,footer,.scroll-indicator,.hero-cta,.modal-actions { display: none !important; }
+  .modal-content { box-shadow: none; max-height: none; }
+  body { background: white; color: black; }
+}
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Navigation -->
+<nav id="navbar">
+  <a href="#hero" class="nav-logo" id="navLogo">Tales <span>of Old</span></a>
+  <ul class="nav-links">
+    <li><a href="#daily-prompt" onclick="smoothTo('daily-prompt')">Today's Prompt</a></li>
+    <li><a href="#journal-writer" onclick="smoothTo('journal-writer')">Write</a></li>
+    <li><a href="#saved-stories" onclick="smoothTo('saved-stories')">My Stories</a></li>
+    <li><a href="#memory-lane" onclick="smoothTo('memory-lane')">Memory Lane</a></li>
+    <li><a href="#brain-health" onclick="smoothTo('brain-health')">Why Journal?</a></li>
+  </ul>
+  <div class="nav-streak">🔥 <span id="streakCount">0</span> day streak</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="particle-canvas"></canvas>
+  <div class="hero-corners"></div>
+  <div class="hero-content">
+    <span class="hero-pre">Your memories are worth keeping</span>
+    <h1 class="hero-title">Tales<em>of Old</em></h1>
+    <p class="hero-desc">Daily journal prompts designed to unlock your greatest stories — for you, and for the people who love you most.</p>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="smoothTo('daily-prompt')">✦ Begin Today's Story</button>
+      <button class="btn-secondary" onclick="smoothTo('saved-stories')">Browse My Stories</button>
+    </div>
+  </div>
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- DAILY PROMPT -->
+<section id="daily-prompt">
+  <span class="section-label">Every day, a new memory</span>
+  <h2 class="section-title reveal">Today's <span>Prompt</span></h2>
+  <div class="category-filters reveal reveal-delay-1">
+    <button class="filter-btn active" onclick="filterPrompts('all',this)">✦ All</button>
+    <button class="filter-btn" onclick="filterPrompts('childhood',this)">🌿 Childhood</button>
+    <button class="filter-btn" onclick="filterPrompts('family',this)">👨‍👩‍👧 Family</button>
+    <button class="filter-btn" onclick="filterPrompts('love',this)">❤️ Love</button>
+    <button class="filter-btn" onclick="filterPrompts('history',this)">🌍 History</button>
+    <button class="filter-btn" onclick="filterPrompts('wisdom',this)">✨ Wisdom</button>
+    <button class="filter-btn" onclick="filterPrompts('adventure',this)">🗺️ Adventure</button>
+  </div>
+  <div class="prompt-container reveal reveal-delay-2">
+    <div class="prompt-card" id="promptCard">
+      <div class="prompt-quill">🪶</div>
+      <p class="prompt-date" id="promptDate"></p>
+      <span class="prompt-category-badge" id="promptCat">Daily Prompt</span>
+      <p class="prompt-text" id="promptText">Loading today's prompt...</p>
+      <div class="prompt-actions">
+        <button class="btn-primary" onclick="usePrompt()">✦ Write This Story</button>
+        <button class="btn-secondary" onclick="nextPrompt()">Next Prompt →</button>
+      </div>
+    </div>
+    <div class="prompt-nav">
+      <button onclick="prevPrompt()">← Previous</button>
+      <span class="prompt-counter" id="promptCounter">1 of 1</span>
+      <button onclick="nextPrompt()">Next →</button>
+    </div>
+  </div>
+</section>
+
+<!-- JOURNAL WRITER -->
+<section id="journal-writer">
+  <span class="section-label reveal">Put pen to paper</span>
+  <h2 class="section-title reveal">Your <span>Journal</span></h2>
+  <div class="journal-wrapper">
+    <div class="journal-book reveal">
+      <div class="journal-spine">Tales of Old</div>
+      <div class="journal-pages">
+        <div class="journal-header">
+          <input type="text" class="journal-title-input" id="journalTitle" placeholder="Give your story a title...">
+          <select class="journal-cat-select" id="journalCat">
+            <option value="childhood">🌿 Childhood</option>
+            <option value="family">👨‍👩‍👧 Family</option>
+            <option value="love">❤️ Love</option>
+            <option value="history">🌍 History</option>
+            <option value="wisdom">✨ Wisdom</option>
+            <option value="adventure">🗺️ Adventure</option>
+          </select>
+        </div>
+        <span class="journal-date-label" id="journalDateLabel"></span>
+        <div class="journal-textarea-wrapper">
+          <textarea class="journal-textarea" id="journalText"
+            placeholder="Start writing your story here... There is no wrong way to remember. Let the memories flow."
+            oninput="updateWordCount()"></textarea>
+        </div>
+        <div class="journal-footer">
+          <span class="word-count" id="wordCount">0 words written</span>
+          <div class="journal-actions">
+            <button class="btn-clear-sm" onclick="clearJournal()">Clear</button>
+            <button class="btn-save" onclick="saveStory()">💾 Save Story</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:1rem;font-size:0.75rem;color:var(--color-text-muted);opacity:0.6;">Tip: Press Ctrl+S (or Cmd+S on Mac) to quickly save your story</p>
+  </div>
+</section>
+
+<!-- SAVED STORIES -->
+<section id="saved-stories">
+  <span class="section-label reveal">Your life, in words</span>
+  <h2 class="section-title reveal">My <span>Stories</span></h2>
+  <div class="stories-grid" id="storiesGrid"></div>
+</section>
+
+<!-- MEMORY LANE -->
+<section id="memory-lane">
+  <span class="section-label reveal">Travel back in time</span>
+  <h2 class="section-title reveal">Memory <span>Lane</span></h2>
+  <div class="decade-nav reveal reveal-delay-1">
+    <button class="decade-btn active" onclick="showDecade('1950s',this)">1950s</button>
+    <button class="decade-btn" onclick="showDecade('1960s',this)">1960s</button>
+    <button class="decade-btn" onclick="showDecade('1970s',this)">1970s</button>
+    <button class="decade-btn" onclick="showDecade('1980s',this)">1980s</button>
+    <button class="decade-btn" onclick="showDecade('1990s',this)">1990s</button>
+    <button class="decade-btn" onclick="showDecade('2000s',this)">2000s</button>
+  </div>
+  <div id="decade-display" class="reveal reveal-delay-2"></div>
+</section>
+
+<!-- BRAIN HEALTH -->
+<section id="brain-health">
+  <span class="section-label reveal">Journal your way to a sharper mind</span>
+  <h2 class="section-title reveal">Why Journaling <span>Matters</span></h2>
+  <div class="tips-grid">
+    <div class="tip-card reveal">
+      <span class="tip-icon">🧠</span>
+      <div class="tip-stat">76%</div>
+      <div class="tip-title">Memory Boost</div>
+      <p class="tip-desc">Regular reflective writing improves memory recall and cognitive flexibility in adults over 50.</p>
+    </div>
+    <div class="tip-card reveal reveal-delay-1">
+      <span class="tip-icon">😌</span>
+      <div class="tip-stat">40%</div>
+      <div class="tip-title">Stress Reduced</div>
+      <p class="tip-desc">Expressive journaling reduces stress and anxiety significantly — giving you peace of mind every day.</p>
+    </div>
+    <div class="tip-card reveal reveal-delay-2">
+      <span class="tip-icon">💛</span>
+      <div class="tip-stat">∞</div>
+      <div class="tip-title">Legacy Created</div>
+      <p class="tip-desc">Your stories become a priceless gift — a living family history your children and grandchildren will treasure forever.</p>
+    </div>
+    <div class="tip-card reveal reveal-delay-3">
+      <span class="tip-icon">⏱️</span>
+      <div class="tip-stat">15min</div>
+      <div class="tip-title">All You Need</div>
+      <p class="tip-desc">Just 15 minutes of writing each day is enough to experience the full cognitive and emotional benefits of journaling.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRESS -->
+<section id="progress-section">
+  <span class="section-label reveal">Your journey in numbers</span>
+  <h2 class="section-title reveal">Your <span>Progress</span></h2>
+  <div class="stats-row">
+    <div class="stat-item reveal"><span class="stat-number" id="statStories">0</span><span class="stat-label">Stories Written</span></div>
+    <div class="stat-item reveal reveal-delay-1"><span class="stat-number" id="statWords">0</span><span class="stat-label">Words Penned</span></div>
+    <div class="stat-item reveal reveal-delay-2"><span class="stat-number" id="statStreak">0</span><span class="stat-label">Day Streak</span></div>
+    <div class="stat-item reveal reveal-delay-3"><span class="stat-number" id="statDays">0</span><span class="stat-label">Days Journaling</span></div>
+  </div>
+  <div class="streak-bar-wrap reveal">
+    <p style="color:var(--color-text-muted);font-size:0.75rem;margin-bottom:1rem;letter-spacing:0.12em;text-transform:uppercase;">Last 30 Days</p>
+    <div class="streak-days" id="streakDays"></div>
+  </div>
+</section>
+
+<!-- Customization Toggle -->
+<button class="customize-toggle" onclick="togglePanel()" title="Customize your experience">🎨</button>
+
+<!-- Customization Panel -->
+<div class="customize-panel" id="customizePanel">
+  <div class="panel-header">
+    <span class="panel-title">Customize ✦</span>
+    <button class="panel-close" onclick="togglePanel()">✕</button>
+  </div>
+
+  <!-- NAME -->
+  <div class="panel-section">
+    <p class="panel-section-title">📌 Your Name</p>
+    <input type="text" class="panel-input" id="userName" placeholder="Enter your name..." oninput="updateName()">
+    <p style="font-size:0.68rem;color:var(--color-text-muted);margin-top:0.4rem;">Personalizes the site just for you</p>
+  </div>
+
+  <!-- THEMES -->
+  <div class="panel-section">
+    <p class="panel-section-title">🎨 Color Theme</p>
+    <div class="theme-swatches">
+      <div class="theme-swatch active" onclick="applyTheme('golden',this)" style="background:linear-gradient(135deg,#1a0e0a,#c9973a,#d4762a)"><span class="theme-swatch-label">Golden</span></div>
+      <div class="theme-swatch" onclick="applyTheme('midnight',this)" style="background:linear-gradient(135deg,#05080f,#1a3a6e,#4a7fc1)"><span class="theme-swatch-label">Midnight</span></div>
+      <div class="theme-swatch" onclick="applyTheme('forest',this)" style="background:linear-gradient(135deg,#050f08,#1a4a2e,#4a9c6a)"><span class="theme-swatch-label">Forest</span></div>
+      <div class="theme-swatch" onclick="applyTheme('rose',this)" style="background:linear-gradient(135deg,#0f0508,#6e1a3a,#c14a7f)"><span class="theme-swatch-label">Rose</span></div>
+      <div class="theme-swatch" onclick="applyTheme('slate',this)" style="background:linear-gradient(135deg,#080c10,#2a3a4a,#8aaabb)"><span class="theme-swatch-label">Slate</span></div>
+      <div class="theme-swatch" onclick="applyTheme('sepia',this)" style="background:linear-gradient(135deg,#0f0a05,#5c3d1e,#b8843a)"><span class="theme-swatch-label">Sepia</span></div>
+    </div>
+  </div>
+
+  <!-- FONT SIZE -->
+  <div class="panel-section">
+    <p class="panel-section-title">🔤 Text Size <span id="fontSizeLabel" style="color:var(--color-gold)">(16px)</span></p>
+    <input type="range" class="font-slider" id="fontSizeSlider" min="14" max="24" value="16" oninput="adjustFontSize(this.value)">
+    <div class="slider-labels"><span>Smaller</span><span>Larger (for easier reading)</span></div>
+  </div>
+
+  <!-- TOGGLES -->
+  <div class="panel-section">
+    <p class="panel-section-title">⚙️ Options</p>
+    <div class="toggle-row"><span class="toggle-label">Firefly Particles</span><button class="toggle on" id="particleToggle" onclick="toggleParticles(this)"></button></div>
+    <div class="toggle-row"><span class="toggle-label">Custom Cursor</span><button class="toggle on" id="cursorToggle" onclick="toggleCursor(this)"></button></div>
+    <div class="toggle-row"><span class="toggle-label">Animations</span><button class="toggle on" id="animToggle" onclick="toggleAnims(this)"></button></div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="panel-section">
+    <p class="panel-section-title">📤 Export & Manage</p>
+    <button class="btn-primary panel-btn-full" onclick="exportStories()">📄 Export All Stories</button>
+    <button class="btn-secondary panel-btn-full" style="margin-top:0.5rem" onclick="clearAll()">🗑️ Clear All Data</button>
+  </div>
+
+  <div style="padding-top:1rem;border-top:1px solid rgba(201,151,58,0.14)">
+    <p style="font-size:0.68rem;color:var(--color-text-muted);line-height:1.7">
+      🔒 All your stories are saved privately in your browser only. They never go anywhere. Share them by printing or copying text.
+    </p>
+  </div>
+</div>
+
+<!-- Story Modal -->
+<div class="story-modal" id="storyModal">
+  <div class="modal-backdrop" onclick="closeModal()"></div>
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">Tales of Old</div>
+  <p class="footer-tagline">Your stories deserve to be told</p>
+  <ul class="footer-links">
+    <li><a href="#daily-prompt">Today's Prompt</a></li>
+    <li><a href="#journal-writer">Write a Story</a></li>
+    <li><a href="#saved-stories">My Stories</a></li>
+    <li><a href="#memory-lane">Memory Lane</a></li>
+    <li><a href="#brain-health">Why Journal?</a></li>
+  </ul>
+  <p class="footer-credit">Made with love by Seeraj Bellamkonda, for all the stories yet to be told ✦</p>
+</footer>
+
+<script>
+// ============================================================
+// 📖 PROMPTS DATA
+// To add more prompts, copy the format below and add to the list!
+// ============================================================
+const ALL_PROMPTS = [
+  // CHILDHOOD
+  {text:"What is your very first memory? Describe it with as much detail as you can — the sights, smells, sounds, and feelings.",category:"childhood"},
+  {text:"What was your childhood home like? Walk me through every room, and tell me what happened in each one.",category:"childhood"},
+  {text:"Who was your best childhood friend, and what adventures did you get up to together?",category:"childhood"},
+  {text:"What was your favorite meal as a child, and who made it? Can you still taste it when you close your eyes?",category:"childhood"},
+  {text:"Describe a typical summer day from your childhood. What would you do from morning until the streetlights came on?",category:"childhood"},
+  {text:"What were you afraid of as a child, and how did you cope with that fear?",category:"childhood"},
+  {text:"Tell me about a toy or game you loved so much that you can still feel it in your hands.",category:"childhood"},
+  {text:"What subject did you love most in school and why? Was there a teacher who made a real difference to you?",category:"childhood"},
+  {text:"Describe a moment from childhood when you felt pure, unadulterated joy.",category:"childhood"},
+  {text:"What was the most mischievous thing you ever did as a child? Did you get caught?",category:"childhood"},
+  {text:"What did the neighbourhood you grew up in look, sound, and smell like? Who were the characters on your street?",category:"childhood"},
+  {text:"Tell me about a holiday or trip from your childhood that you still think about.",category:"childhood"},
+  // FAMILY
+  {text:"Tell me about your mother or the most important maternal figure in your life. What made her who she was?",category:"family"},
+  {text:"Describe your father — his hands, his voice, the things he taught you without words.",category:"family"},
+  {text:"What family tradition meant the most to you growing up, and have you kept it alive?",category:"family"},
+  {text:"Tell me about a grandparent. What do you wish you had asked them before they were gone?",category:"family"},
+  {text:"Describe a family gathering — a holiday, a Sunday dinner, a reunion — that lives in your memory like a photograph.",category:"family"},
+  {text:"What piece of wisdom did a family member pass to you that has shaped how you live?",category:"family"},
+  {text:"Who in your family are you most similar to, and why do you think that is?",category:"family"},
+  {text:"Tell me about a time your family faced a hardship together. What held you all together?",category:"family"},
+  {text:"What family story was told again and again at gatherings? Tell it as if telling it for the very first time.",category:"family"},
+  {text:"Is there something you wish you had told a family member that you never got the chance to say?",category:"family"},
+  {text:"What was the most important thing your parents taught you about how to treat other people?",category:"family"},
+  {text:"If you could sit down with your younger self and one family member who is gone, who would you choose and what would you talk about?",category:"family"},
+  // LOVE
+  {text:"How did you meet the great love of your life? Tell me the whole story, from the very beginning.",category:"love"},
+  {text:"Describe the moment you knew you were in love. Where were you? What were you feeling?",category:"love"},
+  {text:"What does love look like in the small moments — the everyday gestures that meant everything?",category:"love"},
+  {text:"What is the most romantic thing anyone has ever done for you?",category:"love"},
+  {text:"What advice would you give about love to someone just starting out in life?",category:"love"},
+  {text:"Describe your first heartbreak. How did you heal, and what did it teach you?",category:"love"},
+  {text:"What do you love most deeply in your life today — a person, a place, a feeling?",category:"love"},
+  {text:"Tell me about a friendship that felt as deep as any love story. How did it begin?",category:"love"},
+  {text:"What has love taught you that nothing else could have?",category:"love"},
+  // HISTORY
+  {text:"Where were you when something historic happened in the world? What do you remember about that day?",category:"history"},
+  {text:"What major world event from your youth shaped how you see the world today?",category:"history"},
+  {text:"What was life like before the internet? Describe a typical day of finding information or staying in touch with people.",category:"history"},
+  {text:"How did your community change during your lifetime? What was lost, and what was gained?",category:"history"},
+  {text:"What invention that arrived during your lifetime changed everything for you?",category:"history"},
+  {text:"What was the biggest social change you witnessed in your lifetime, and how did you feel about it at the time?",category:"history"},
+  {text:"Describe what a trip to the grocery store, the doctor, or the bank was like 40 years ago. What has changed?",category:"history"},
+  {text:"If you could go back and witness one historical moment from your lifetime as an observer, what would it be and why?",category:"history"},
+  {text:"How did the music of your youth reflect the times you were living through?",category:"history"},
+  // WISDOM
+  {text:"What is the single most important lesson life has taught you? How did you learn it?",category:"wisdom"},
+  {text:"What would you tell your 20-year-old self, knowing what you know now?",category:"wisdom"},
+  {text:"What mistake in your past are you most grateful you made?",category:"wisdom"},
+  {text:"What do you know to be absolutely, certainly true about life?",category:"wisdom"},
+  {text:"What do you wish you had worried less about? What do you wish you had taken more seriously?",category:"wisdom"},
+  {text:"What is the secret to a good life, as far as you have been able to discover?",category:"wisdom"},
+  {text:"What are you most proud of in your life — not a prize or achievement, but something you know deep in your heart?",category:"wisdom"},
+  {text:"Describe a moment that broke you — and then describe how you put yourself back together.",category:"wisdom"},
+  {text:"What has changed most about the way you see the world since you were young?",category:"wisdom"},
+  {text:"What do you hope people will remember about you when you are gone?",category:"wisdom"},
+  {text:"What does it mean to live a meaningful life? Has your answer to that question changed over the years?",category:"wisdom"},
+  // ADVENTURE
+  {text:"Tell me about the greatest adventure you ever went on. What made it unforgettable?",category:"adventure"},
+  {text:"Describe a place you have been that took your breath away.",category:"adventure"},
+  {text:"When did you do something completely outside your comfort zone? What happened, and how did it change you?",category:"adventure"},
+  {text:"Tell me about the most spontaneous thing you have ever done. Did it work out?",category:"adventure"},
+  {text:"What is the strangest or most surprising thing that has ever happened to you?",category:"adventure"},
+  {text:"What job or experience in your life taught you the most about yourself?",category:"adventure"},
+  {text:"Tell me about a journey you took — by car, train, boat, or plane — that became a story you still tell.",category:"adventure"},
+  {text:"Was there a road not taken — a life you almost lived? What might it have looked like?",category:"adventure"},
+  {text:"What is something you did in your youth that you would never dare to do today?",category:"adventure"},
+];
+
+// ============================================================
+// 🗓️ DECADE DATA
+// ============================================================
+const DECADES = {
+  '1950s':{title:"The Fabulous Fifties",events:[
+    {year:"1950",text:"The Korean War begins. A world still healing from WWII holds its breath once more."},
+    {year:"1953",text:"Queen Elizabeth II is crowned. A new era of hope dawns across the Commonwealth."},
+    {year:"1955",text:"Rosa Parks refuses to give up her seat. The Civil Rights movement finds its voice."},
+    {year:"1957",text:"Sputnik launches. The Space Age begins with a humble beep from above."},
+    {year:"1955",text:"Disneyland opens. Drive-in movies and sock hops define the decade's spirit."},
+    {year:"1959",text:"Alaska and Hawaii become the 49th and 50th states of the USA."},
+  ],prompt:"Think back to the 1950s. What do you remember about how the world felt — the energy, the hope, the fear? What did your daily life look, sound, and smell like in that decade?"},
+  '1960s':{title:"The Revolutionary Sixties",events:[
+    {year:"1961",text:"President Kennedy announces the mission to put a man on the moon. America dreams big."},
+    {year:"1963",text:"JFK is assassinated in Dallas. A generation remembers exactly where they were."},
+    {year:"1964",text:"The Beatles land in America. Music — and culture — will never be the same again."},
+    {year:"1965",text:"The Voting Rights Act passes. A long and hard-fought battle, partially won."},
+    {year:"1968",text:"Martin Luther King Jr. and Robert Kennedy are assassinated. A year of grief and anger."},
+    {year:"1969",text:"Neil Armstrong walks on the moon. Humanity holds its breath and then erupts in joy."},
+  ],prompt:"The 1960s changed everything. What do you remember about how it felt to live through such a turbulent, passionate decade? What did you believe in most fiercely?"},
+  '1970s':{title:"The Searching Seventies",events:[
+    {year:"1970",text:"The first Earth Day is celebrated. A new environmental consciousness stirs."},
+    {year:"1972",text:"The Watergate scandal unfolds. Trust in institutions begins to crack."},
+    {year:"1973",text:"The oil crisis hits. Long lines at gas stations become the new normal."},
+    {year:"1977",text:"Star Wars premieres. Science fiction captures the world's imagination."},
+    {year:"1978",text:"Saturday Night Fever defines the decade's sound, style, and attitude."},
+    {year:"1979",text:"The Iran Hostage Crisis begins. A nation thinks daily of 52 Americans abroad."},
+  ],prompt:"The 1970s had a particular feeling — of searching, questioning, and changing. What were you searching for in that decade? What music, style, or moment defined it for you personally?"},
+  '1980s':{title:"The Ambitious Eighties",events:[
+    {year:"1981",text:"MTV launches. Music videos transform how we hear and see artists forever."},
+    {year:"1983",text:"The internet's predecessor ARPANET formally adopts TCP/IP. A quiet revolution begins."},
+    {year:"1985",text:"Live Aid brings 1.9 billion viewers together to fight famine in Ethiopia."},
+    {year:"1986",text:"The Space Shuttle Challenger explodes. The nation mourns seven astronauts."},
+    {year:"1989",text:"The Berlin Wall falls. Europe — and the world — is transformed overnight."},
+    {year:"1989",text:"The first Game Boy ships. Handheld gaming changes everything for families."},
+  ],prompt:"The 1980s were full of ambition, big hair, and bigger dreams. What were you building in that decade — a career, a family, a life? What did the future feel like from where you stood?"},
+  '1990s':{title:"The Optimistic Nineties",events:[
+    {year:"1991",text:"The World Wide Web becomes publicly available. Everything is about to change."},
+    {year:"1993",text:"Mosaic, the first popular web browser, brings the internet to ordinary people."},
+    {year:"1994",text:"Nelson Mandela becomes President of South Africa. A historic chapter closes."},
+    {year:"1997",text:"Princess Diana dies in a car crash. The world stops and grieves together."},
+    {year:"1999",text:"Y2K looms. The world braces — and then breathes — as the new millennium arrives."},
+    {year:"1998",text:"Google is founded in a garage. The way we find knowledge is about to change forever."},
+  ],prompt:"The 1990s felt, for many, like a golden age of possibility. How do you remember that decade? What were you doing when the internet first entered your life?"},
+  '2000s':{title:"The Awakening 2000s",events:[
+    {year:"2001",text:"September 11th. A day that changed the world and every person in it, permanently."},
+    {year:"2003",text:"The Human Genome Project completes. A landmark in the story of human science."},
+    {year:"2005",text:"Hurricane Katrina devastates New Orleans. Hard questions about inequality rise."},
+    {year:"2007",text:"The iPhone is unveiled. The smartphone era begins, quietly changing everything."},
+    {year:"2008",text:"The Global Financial Crisis. Millions face economic uncertainty and loss."},
+    {year:"2008",text:"Barack Obama is elected the first African American President of the United States."},
+  ],prompt:"The 2000s began with tragedy and ended with transformation. How did September 11th change you? How did you adapt as technology moved faster and faster around you?"},
+};
+
+// ============================================================
+// ⚙️ STATE
+// ============================================================
+let currentPromptIndex = 0;
+let currentCategory = 'all';
+let filteredPrompts = [...ALL_PROMPTS];
+let stories = JSON.parse(localStorage.getItem('tales_stories') || '[]');
+let journalingDays = JSON.parse(localStorage.getItem('tales_days') || '[]');
+let particles = [];
+let particlesEnabled = true;
+let animFrame;
+
+// ============================================================
+// ✨ PARTICLE SYSTEM
+// ============================================================
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+class Particle {
+  constructor(){ this.reset(true); }
+  reset(init=false){
+    this.x = Math.random() * canvas.width;
+    this.y = init ? Math.random() * canvas.height : canvas.height + 10;
+    this.size = Math.random() * 2.2 + 0.5;
+    this.speedX = (Math.random() - 0.5) * 0.35;
+    this.speedY = -(Math.random() * 0.35 + 0.05);
+    this.life = init ? Math.floor(Math.random() * 180) : 0;
+    this.maxLife = Math.random() * 180 + 120;
+    this.type = Math.random() > 0.65 ? 'firefly' : 'star';
+    this.glowR = Math.random() * 9 + 4;
+    this.hue = Math.random() * 28 + 22;
+    this.bSpeed = Math.random() * 0.055 + 0.012;
+    this.bOff = Math.random() * Math.PI * 2;
+  }
+  update(){
+    this.x += this.speedX + (this.type==='firefly' ? Math.sin(this.life*0.022)*0.55 : 0);
+    this.y += this.speedY;
+    this.life++;
+    if(this.life > this.maxLife || this.y < -10) this.reset();
+  }
+  draw(){
+    const lr = this.life / this.maxLife;
+    const a = lr < 0.12 ? lr/0.12 : lr > 0.88 ? (1-lr)/0.12 : 1;
+    const blink = this.type==='firefly' ? (Math.sin(this.life*this.bSpeed+this.bOff)*0.5+0.5) : 1;
+    const fa = a * blink;
+    ctx.save();
+    if(this.type==='firefly'){
+      const g = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.glowR);
+      g.addColorStop(0,`hsla(${this.hue},80%,72%,${fa*0.75})`);
+      g.addColorStop(1,`hsla(${this.hue},80%,50%,0)`);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(this.x,this.y,this.glowR,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = `hsla(${this.hue+8},90%,88%,${fa})`;
+    } else {
+      ctx.fillStyle = `rgba(240,218,148,${fa*0.55})`;
+    }
+    ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+function initParticles(){ particles = Array.from({length:110}, ()=>new Particle()); }
+function animateParticles(){
+  if(!particlesEnabled) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{ p.update(); p.draw(); });
+  animFrame = requestAnimationFrame(animateParticles);
+}
+
+// ============================================================
+// 🖱️ CURSOR
+// ============================================================
+const cursorEl = document.getElementById('cursor');
+const trailEl = document.getElementById('cursorTrail');
+document.addEventListener('mousemove', e=>{
+  cursorEl.style.left = e.clientX+'px'; cursorEl.style.top = e.clientY+'px';
+  setTimeout(()=>{ trailEl.style.left=e.clientX+'px'; trailEl.style.top=e.clientY+'px'; }, 90);
+});
+document.querySelectorAll('button,a,input,textarea,select').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ cursorEl.style.width='36px';cursorEl.style.height='36px';cursorEl.style.opacity='0.55'; });
+  el.addEventListener('mouseleave',()=>{ cursorEl.style.width='18px';cursorEl.style.height='18px';cursorEl.style.opacity='1'; });
+});
+
+// ============================================================
+// 👁️ SCROLL REVEAL
+// ============================================================
+const revealObs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('revealed'); });
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
+
+// === NAV scroll ===
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>50);
+});
+
+function smoothTo(id){ document.getElementById(id).scrollIntoView({behavior:'smooth'}); }
+
+// ============================================================
+// 📋 PROMPTS
+// ============================================================
+function filterPrompts(cat, btn){
+  currentCategory = cat;
+  filteredPrompts = cat==='all' ? [...ALL_PROMPTS] : ALL_PROMPTS.filter(p=>p.category===cat);
+  currentPromptIndex = 0;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  displayPrompt();
+}
+
+function displayPrompt(){
+  const p = filteredPrompts[currentPromptIndex];
+  if(!p) return;
+  const card = document.getElementById('promptCard');
+  card.style.opacity='0'; card.style.transform='translateY(10px)';
+  setTimeout(()=>{
+    document.getElementById('promptText').textContent = p.text;
+    const cat = p.category;
+    document.getElementById('promptCat').textContent = cat.charAt(0).toUpperCase()+cat.slice(1);
+    document.getElementById('promptCounter').textContent = `${currentPromptIndex+1} of ${filteredPrompts.length}`;
+    card.style.opacity='1'; card.style.transform='translateY(0)';
+    card.style.transition='opacity 0.4s ease, transform 0.4s ease';
+  },200);
+}
+
+function nextPrompt(){ currentPromptIndex=(currentPromptIndex+1)%filteredPrompts.length; displayPrompt(); }
+function prevPrompt(){ currentPromptIndex=(currentPromptIndex-1+filteredPrompts.length)%filteredPrompts.length; displayPrompt(); }
+
+function usePrompt(){
+  const p = filteredPrompts[currentPromptIndex];
+  document.getElementById('journalCat').value = p.category;
+  smoothTo('journal-writer');
+  setTimeout(()=>{
+    const ta = document.getElementById('journalText');
+    if(!ta.value) ta.placeholder = `Prompt: "${p.text}"\n\nStart writing your story here...`;
+    ta.focus(); showToast('✦ Prompt loaded — start writing!');
+  },800);
+}
+
+function setDates(){
+  const now = new Date();
+  const opts = {weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  const str = now.toLocaleDateString('en-US',opts);
+  document.getElementById('promptDate').textContent = str;
+  document.getElementById('journalDateLabel').textContent = str;
+}
+
+function getDailyPrompt(){
+  const now = new Date();
+  const start = new Date(now.getFullYear(),0,0);
+  const day = Math.floor((now-start)/(1000*60*60*24));
+  currentPromptIndex = day % ALL_PROMPTS.length;
+  filteredPrompts = [...ALL_PROMPTS];
+}
+
+// ============================================================
+// ✍️ JOURNAL
+// ============================================================
+function updateWordCount(){
+  const t = document.getElementById('journalText').value;
+  const w = t.trim() ? t.trim().split(/\s+/).length : 0;
+  document.getElementById('wordCount').textContent = w===1?'1 word written':`${w} words written`;
+}
+
+function clearJournal(){
+  if(document.getElementById('journalText').value && confirm('Clear this entry?')){
+    document.getElementById('journalText').value='';
+    document.getElementById('journalTitle').value='';
+    updateWordCount(); showToast('Entry cleared');
+  }
+}
+
+function saveStory(){
+  const title = document.getElementById('journalTitle').value.trim() || 'Untitled Story';
+  const text = document.getElementById('journalText').value.trim();
+  const cat = document.getElementById('journalCat').value;
+  if(!text){ showToast('⚠️ Please write something first!'); return; }
+  const story = {id:Date.now(),title,text,category:cat,date:new Date().toISOString(),wordCount:text.split(/\s+/).length};
+  stories.unshift(story);
+  localStorage.setItem('tales_stories',JSON.stringify(stories));
+  const today = new Date().toDateString();
+  if(!journalingDays.includes(today)){ journalingDays.push(today); localStorage.setItem('tales_days',JSON.stringify(journalingDays)); }
+  document.getElementById('journalText').value='';
+  document.getElementById('journalTitle').value='';
+  updateWordCount(); renderStories(); updateStats();
+  showToast('✦ Story saved! Your memory lives on.');
+}
+
+// ============================================================
+// 📚 STORIES
+// ============================================================
+const CAT_EMOJI = {childhood:'🌿',family:'👨‍👩‍👧',love:'❤️',history:'🌍',wisdom:'✨',adventure:'🗺️'};
+
+function renderStories(){
+  const g = document.getElementById('storiesGrid');
+  if(!stories.length){
+    g.innerHTML=`<div class="empty-stories"><p>Your stories are waiting to be written ✦</p><p style="font-family:var(--font-body);font-size:0.9rem">Save your first journal entry above and it will appear here.</p></div>`;
+    return;
+  }
+  g.innerHTML = stories.map(s=>{
+    const d = new Date(s.date).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    const em = CAT_EMOJI[s.category]||'✦';
+    const prev = s.text.substring(0,150)+(s.text.length>150?'...':'');
+    return `<div class="story-card" onclick="openStory(${s.id})">
+      <p class="story-card-cat">${em} ${s.category}</p>
+      <h3 class="story-card-title">${s.title}</h3>
+      <p class="story-card-preview">${prev}</p>
+      <div class="story-card-meta">
+        <span>${d} · ${s.wordCount} words</span>
+        <div class="story-card-acts" onclick="event.stopPropagation()">
+          <button class="btn-icon" onclick="editStory(${s.id})" title="Edit">✏️</button>
+          <button class="btn-icon" onclick="printStory(${s.id})" title="Print">🖨️</button>
+          <button class="btn-icon" onclick="deleteStory(${s.id})" title="Delete">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openStory(id){
+  const s = stories.find(x=>x.id===id); if(!s) return;
+  const d = new Date(s.date).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const em = CAT_EMOJI[s.category]||'✦';
+  document.getElementById('modalBody').innerHTML=`
+    <h2 class="modal-title">${s.title}</h2>
+    <p class="modal-meta">${em} ${s.category} &nbsp;·&nbsp; ${d} &nbsp;·&nbsp; ${s.wordCount} words</p>
+    <div class="modal-body">${s.text}</div>
+    <div class="modal-actions">
+      <button class="btn-save" onclick="printStory(${s.id})">🖨️ Print / Share</button>
+      <button class="btn-clear-sm" onclick="editStory(${s.id});closeModal()">✏️ Edit</button>
+      <button class="btn-clear-sm" onclick="closeModal()">Close</button>
+    </div>`;
+  document.getElementById('storyModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('storyModal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function editStory(id){
+  const s = stories.find(x=>x.id===id); if(!s) return;
+  document.getElementById('journalTitle').value=s.title;
+  document.getElementById('journalText').value=s.text;
+  document.getElementById('journalCat').value=s.category;
+  updateWordCount();
+  stories = stories.filter(x=>x.id!==id);
+  localStorage.setItem('tales_stories',JSON.stringify(stories));
+  renderStories(); smoothTo('journal-writer');
+  setTimeout(()=>showToast('✏️ Story loaded for editing — save when done.'),800);
+}
+
+function deleteStory(id){
+  if(confirm('Delete this story permanently?')){
+    stories = stories.filter(x=>x.id!==id);
+    localStorage.setItem('tales_stories',JSON.stringify(stories));
+    renderStories(); updateStats(); showToast('Story deleted.');
+  }
+}
+
+function printStory(id){
+  const s = stories.find(x=>x.id===id); if(!s) return;
+  const d = new Date(s.date).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>${s.title} — Tales of Old</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Lora',Georgia,serif;max-width:700px;margin:4rem auto;padding:2rem;color:#2c1810}
+    .brand{font-family:'Playfair Display',serif;color:#c9973a;font-size:1.1rem;letter-spacing:.2em;text-align:center;margin-bottom:.5rem}
+    h1{font-family:'Playfair Display',serif;font-size:2.4rem;font-style:italic;text-align:center;margin:.5rem 0}
+    .meta{color:#8b7355;font-size:.85rem;text-align:center;margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:1px solid #c9973a}
+    .body{font-size:1.05rem;line-height:2;white-space:pre-wrap}
+    .footer{margin-top:3rem;padding-top:1rem;border-top:1px solid #c9973a;text-align:center;color:#8b7355;font-size:.8rem;font-style:italic}
+  </style></head><body>
+  <p class="brand">✦ TALES OF OLD ✦</p>
+  <h1>${s.title}</h1>
+  <p class="meta">${d}</p>
+  <div class="body">${s.text}</div>
+  <div class="footer">Written with love — a memory preserved for those who come after.</div>
+  </body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),600);
+}
+
+// ============================================================
+// 🗓️ MEMORY LANE
+// ============================================================
+function showDecade(decade, btn){
+  const data = DECADES[decade]; if(!data) return;
+  document.querySelectorAll('.decade-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const disp = document.getElementById('decade-display');
+  disp.style.opacity='0';
+  setTimeout(()=>{
+    disp.innerHTML=`<div class="decade-content">
+      <div class="decade-header">
+        <div class="decade-bg-year">${decade}</div>
+        <p class="decade-sub-title">${data.title}</p>
+      </div>
+      <div class="decade-grid">${data.events.map(e=>`
+        <div class="decade-event">
+          <span class="decade-event-year">${e.year}</span>
+          <span class="decade-event-text">${e.text}</span>
+        </div>`).join('')}
+      </div>
+      <div class="decade-prompt-box">
+        <span class="decade-prompt-label">✦ Memory Prompt for the ${decade}</span>
+        <p class="decade-prompt-text">${data.prompt}</p>
+        <button class="btn-primary" onclick="writeDecadePrompt('${decade}')">Write About the ${decade}</button>
+      </div>
+    </div>`;
+    disp.style.opacity='1'; disp.style.transition='opacity 0.45s ease';
+  },200);
+}
+
+function writeDecadePrompt(decade){
+  const data = DECADES[decade];
+  document.getElementById('journalTitle').value=`My ${decade}`;
+  document.getElementById('journalText').value='';
+  document.getElementById('journalText').placeholder=data.prompt+'\n\nStart writing here...';
+  smoothTo('journal-writer');
+  setTimeout(()=>{ document.getElementById('journalText').focus(); showToast(`✦ Ready to write about the ${decade}`); },800);
+}
+
+// ============================================================
+// 📊 STATS
+// ============================================================
+function updateStats(){
+  const totalWords = stories.reduce((s,x)=>s+x.wordCount,0);
+  const streak = calcStreak();
+  document.getElementById('statStories').textContent = stories.length;
+  document.getElementById('statWords').textContent = totalWords.toLocaleString();
+  document.getElementById('statStreak').textContent = streak;
+  document.getElementById('statDays').textContent = journalingDays.length;
+  document.getElementById('streakCount').textContent = streak;
+  renderStreakDays();
+}
+
+function calcStreak(){
+  let s=0; const check=new Date();
+  for(let i=0;i<365;i++){
+    if(journalingDays.includes(check.toDateString())){ s++; check.setDate(check.getDate()-1); }
+    else break;
+  }
+  return s;
+}
+
+function renderStreakDays(){
+  const c = document.getElementById('streakDays');
+  const today = new Date();
+  const days = Array.from({length:30},(_,i)=>{ const d=new Date(today); d.setDate(d.getDate()-(29-i)); return d; });
+  c.innerHTML = days.map((d,i)=>{
+    const isToday=i===29;
+    const done=journalingDays.includes(d.toDateString());
+    return `<div class="streak-day ${done?'completed':''} ${isToday&&!done?'today':''}" title="${d.toDateString()}">${d.getDate()}</div>`;
+  }).join('');
+}
+
+// ============================================================
+// 🎨 THEMES
+// ============================================================
+const THEMES = {
+  golden:{bg:'#0f0804',surface:'#1e1208',gold:'#c9973a',goldLight:'#e8b84b',amber:'#d4762a',cream:'#f0e0b0',textDark:'#2c1810',textMuted:'#8b7355'},
+  midnight:{bg:'#050810',surface:'#0a1020',gold:'#4a7fc1',goldLight:'#6a9fd8',amber:'#3a6aac',cream:'#c0d4f0',textDark:'#1a2a3a',textMuted:'#5a7a9a'},
+  forest:{bg:'#050f08',surface:'#0a1e10',gold:'#4a9c6a',goldLight:'#6abf85',amber:'#3a8a5a',cream:'#c0f0d0',textDark:'#1a3a20',textMuted:'#5a8a65'},
+  rose:{bg:'#0f0508',surface:'#200a10',gold:'#c14a7f',goldLight:'#d870a0',amber:'#a63a6a',cream:'#f0c0d5',textDark:'#3a1020',textMuted:'#9a6070'},
+  slate:{bg:'#080c10',surface:'#101820',gold:'#8aaabb',goldLight:'#aaccdd',amber:'#7a9aaa',cream:'#c0d8e0',textDark:'#1a2830',textMuted:'#6a8898'},
+  sepia:{bg:'#0f0a05',surface:'#1e1408',gold:'#b8843a',goldLight:'#d4a050',amber:'#a07030',cream:'#f0e4c8',textDark:'#2c1c0c',textMuted:'#7a6040'},
+};
+
+function applyTheme(name, el){
+  const t = THEMES[name]; if(!t) return;
+  const r = document.documentElement;
+  r.style.setProperty('--color-bg',t.bg);
+  r.style.setProperty('--color-surface',t.surface);
+  r.style.setProperty('--color-gold',t.gold);
+  r.style.setProperty('--color-gold-light',t.goldLight);
+  r.style.setProperty('--color-amber',t.amber);
+  r.style.setProperty('--color-cream',t.cream);
+  r.style.setProperty('--color-text-dark',t.textDark);
+  r.style.setProperty('--color-text-muted',t.textMuted);
+  document.querySelectorAll('.theme-swatch').forEach(s=>s.classList.remove('active'));
+  (el||event?.target?.closest?.('.theme-swatch'))?.classList.add('active');
+  localStorage.setItem('tales_theme',name);
+  showToast('Theme updated ✦');
+}
+
+function adjustFontSize(sz){
+  document.documentElement.style.fontSize=sz+'px';
+  document.getElementById('fontSizeLabel').textContent=`(${sz}px)`;
+  localStorage.setItem('tales_fontSize',sz);
+}
+
+function updateName(){
+  const n = document.getElementById('userName').value.trim();
+  localStorage.setItem('tales_name',n);
+  document.getElementById('navLogo').innerHTML = n ? `${n}'s <span>Tales</span>` : `Tales <span>of Old</span>`;
+}
+
+function toggleParticles(btn){
+  btn.classList.toggle('on');
+  particlesEnabled = btn.classList.contains('on');
+  if(particlesEnabled){ animateParticles(); } else { cancelAnimationFrame(animFrame); ctx.clearRect(0,0,canvas.width,canvas.height); }
+}
+
+function toggleCursor(btn){
+  btn.classList.toggle('on');
+  const on = btn.classList.contains('on');
+  cursorEl.style.display = on?'':'none';
+  trailEl.style.display = on?'':'none';
+  document.body.style.cursor = on?'none':'auto';
+}
+
+function toggleAnims(btn){
+  btn.classList.toggle('on');
+  document.documentElement.style.setProperty('--transition', btn.classList.contains('on') ? 'all 0.4s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none');
+}
+
+function togglePanel(){
+  document.getElementById('customizePanel').classList.toggle('open');
+}
+
+// ============================================================
+// 📤 EXPORT
+// ============================================================
+function exportStories(){
+  if(!stories.length){ showToast('No stories to export yet!'); return; }
+  let txt='✦ TALES OF OLD — My Stories ✦\n'+'='.repeat(50)+'\n\n';
+  stories.forEach(s=>{
+    const d = new Date(s.date).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    txt+=`📖 ${s.title}\n${s.category.toUpperCase()} · ${d} · ${s.wordCount} words\n${'-'.repeat(40)}\n${s.text}\n\n${'='.repeat(50)}\n\n`;
+  });
+  const blob=new Blob([txt],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='Tales-of-Old-My-Stories.txt'; a.click();
+  URL.revokeObjectURL(url); showToast('✦ Stories exported!');
+}
+
+function clearAll(){
+  if(confirm('Delete ALL stories permanently? This cannot be undone.')){
+    if(confirm('Really sure? All your stories will be lost forever.')){
+      localStorage.clear(); stories=[]; journalingDays=[];
+      renderStories(); updateStats(); showToast('All data cleared.');
+    }
+  }
+}
+
+// ============================================================
+// 🔔 TOAST
+// ============================================================
+function showToast(msg){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  c.appendChild(t); setTimeout(()=>t.remove(),3200);
+}
+
+// ============================================================
+// 💾 LOAD PREFERENCES
+// ============================================================
+function loadPrefs(){
+  const theme=localStorage.getItem('tales_theme');
+  if(theme){
+    const names=['golden','midnight','forest','rose','slate','sepia'];
+    const idx=names.indexOf(theme);
+    const swatches=document.querySelectorAll('.theme-swatch');
+    swatches.forEach(s=>s.classList.remove('active'));
+    if(idx>=0){ applyTheme(theme); swatches[idx]?.classList.add('active'); }
+  }
+  const sz=localStorage.getItem('tales_fontSize');
+  if(sz){ adjustFontSize(sz); document.getElementById('fontSizeSlider').value=sz; }
+  const name=localStorage.getItem('tales_name');
+  if(name){ document.getElementById('userName').value=name; updateName(); }
+}
+
+// ============================================================
+// 🚀 INIT
+// ============================================================
+function init(){
+  resizeCanvas(); initParticles(); animateParticles();
+  setDates(); getDailyPrompt(); displayPrompt();
+  showDecade('1950s', document.querySelector('.decade-btn'));
+  renderStories(); updateStats(); loadPrefs();
+  window.addEventListener('resize', resizeCanvas);
+  document.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==='s'){ e.preventDefault(); if(document.getElementById('journalText').value) saveStory(); }
+    if(e.key==='Escape') closeModal();
+  });
+  // 3D tilt effect on prompt card
+  const card=document.getElementById('promptCard');
+  card.addEventListener('mousemove',e=>{
+    const rect=card.getBoundingClientRect();
+    const x=(e.clientX-rect.left)/rect.width-0.5;
+    const y=(e.clientY-rect.top)/rect.height-0.5;
+    card.style.transform=`perspective(900px) rotateY(${x*6}deg) rotateX(${-y*4}deg) scale(1.01)`;
+  });
+  card.addEventListener('mouseleave',()=>{ card.style.transform=''; });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
